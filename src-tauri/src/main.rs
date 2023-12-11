@@ -12,7 +12,7 @@ use tauri::{App, Manager};
 
 use std::thread;
 
-use vmcp::{Address, BonePosition, ExtendesParser, Transform};
+use vmcp::{Address, BonePosition, ExtendesParser};
 
 #[derive(Debug, Serialize)]
 struct Message {
