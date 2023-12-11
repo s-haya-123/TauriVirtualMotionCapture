@@ -12,54 +12,40 @@ use tauri::{App, Manager};
 
 use std::thread;
 
-use vmcp::{Address, BonePosition, Camera, ExtendesParser, Transform};
+use vmcp::{Address, BonePosition, ExtendesParser, Transform};
 
 #[derive(Debug, Serialize)]
 struct Message {
-    time: Vec<f32>,
     bone: Vec<BonePosition>,
-    camera: Vec<Camera>,
-    root: Vec<Transform>,
 }
 
 impl Message {
     fn is_empty(&self) -> bool {
         self.bone.is_empty()
-            && self.camera.is_empty()
-            && self.time.is_empty()
-            && self.root.is_empty()
     }
 }
 
 fn parse_osc_bundle(packet: OscPacket) -> Message {
     match packet {
-        OscPacket::Message(_) => Message {
-            bone: vec![],
-            time: vec![],
-            camera: vec![],
-            root: vec![],
-        },
-        OscPacket::Bundle(bundle) => bundle.content.iter().fold(
-            Message {
-                bone: vec![],
-                time: vec![],
-                camera: vec![],
-                root: vec![],
-            },
-            |mut acc, packet| {
-                let m = parse_osc_message(packet);
-                match m {
-                    Ok(address) => {
-                        match address {
-                            Address::Bone(bone) => acc.bone.push(bone),
-                            Address::None => {}
+        OscPacket::Message(_) => Message { bone: vec![] },
+        OscPacket::Bundle(bundle) => {
+            bundle
+                .content
+                .iter()
+                .fold(Message { bone: vec![] }, |mut acc, packet| {
+                    let m = parse_osc_message(packet);
+                    match m {
+                        Ok(address) => {
+                            match address {
+                                Address::Bone(bone) => acc.bone.push(bone),
+                                Address::None => {}
+                            }
+                            acc
                         }
-                        acc
+                        Err(_) => acc,
                     }
-                    Err(_) => acc,
-                }
-            },
-        ),
+                })
+        }
     }
 }
 

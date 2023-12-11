@@ -51,11 +51,7 @@ pub struct BonePosition {
     pub name: BonePositionName,
     pub transform: Transform,
 }
-#[derive(Debug, Serialize)]
-pub struct Camera {
-    transform: Transform,
-    fog: f32,
-}
+
 pub trait ExtendesParser {
     fn parse(&self) -> Result<Address, String>;
 }
