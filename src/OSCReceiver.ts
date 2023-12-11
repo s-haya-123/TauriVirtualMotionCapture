@@ -51,7 +51,7 @@ export const setPositionFromBonePosition = (boneArray: readonly BonePosition[], 
         return;
     }
     for (const bone of boneArray) {
-        const node = vrm.humanoid.getNormalizedBone(VRMHumanBoneName[bone.name])?.node;
+        const node = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName[bone.name]);
         if (!!node) {
             const t = bone.transform;
             node.position.set(t.position.x, t.position.y, t.position.z);
