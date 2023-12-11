@@ -2,61 +2,9 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons';
 import { VRMLoaderPlugin } from '@pixiv/three-vrm';
 import { listen } from "@tauri-apps/api/event";
-import { VRM, VRMHumanBoneName, VRMUtils } from '@pixiv/three-vrm'
+import { VRM } from '@pixiv/three-vrm'
+import { setPositionFromBonePosition, Event } from './OSCReceiver';
 
-const boneName = [
-  "RightHand",
-  "RightLowerArm",
-  "RightUpperArm",
-  "RightShoulder",
-  "LeftHand",
-  "LeftLowerArm",
-  "LeftUpperArm",
-  "LeftShoulder",
-  "RightUpperLeg",
-  "RightLowerLeg",
-  "RightToes",
-  "LeftUpperLeg",
-  "LeftLowerLeg",
-  "LeftToes",
-  "Hips",
-  "Head",
-] as const;
-
-
-type BoneName = typeof boneName[number];
-
-type Transform = {
-  position: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  rotation: {
-    x: number;
-    y: number;
-    z: number;
-    w: number;
-  }
-};
-type MessageCamera = {
-  transform: Transform;
-  fog: number;
-};
-type BonePosition = {
-  transform: Transform;
-  name: BoneName;
-}
-
-type Message = {
-  time: readonly number[];
-  bone: readonly BonePosition[];
-  camera: readonly MessageCamera[];
-  root: readonly Transform[];
-}
-type Event = {
-  payload: Message
-}
 
 
 const scene = new THREE.Scene();
@@ -89,22 +37,6 @@ loader.load(
   (progress) => console.log('Loading model...', 100.0 * (progress.loaded / progress.total), '%'),
   (error) => console.error(error),
 );
-
-const setPositionFromBonePosition = (boneArray: readonly BonePosition[], vrm: VRM | undefined) => {
-  if (!vrm) {
-    return;
-  }
-  for (const bone of boneArray) {
-    const node = vrm.humanoid.getNormalizedBone(VRMHumanBoneName[bone.name])?.node;
-    if (!!node) {
-      const t = bone.transform;
-      node.position.set(t.position.x, t.position.y, t.position.z);
-      node.quaternion.set(-t.rotation.x, -t.rotation.y, t.rotation.z, t.rotation.w);
-    }
-  }
-  vrm.humanoid.update();
-}
-
 listen('OscPacket', (e: Event) => {
   setPositionFromBonePosition(e.payload.bone, vrm);
 });
