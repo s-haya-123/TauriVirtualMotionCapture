@@ -42,11 +42,8 @@ type BonePosition = {
     name: BoneName;
 }
 
-type Message = {
+export type Message = {
     bone: readonly BonePosition[];
-}
-export type Event = {
-    payload: Message
 }
 
 export const setPositionFromBonePosition = (boneArray: readonly BonePosition[], vrm: VRM | undefined) => {

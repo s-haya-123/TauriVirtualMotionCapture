@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons';
 import { VRMLoaderPlugin } from '@pixiv/three-vrm';
 import { listen } from "@tauri-apps/api/event";
 import { VRM } from '@pixiv/three-vrm'
-import { setPositionFromBonePosition, Event } from './OSCReceiver';
+import { setPositionFromBonePosition, Message } from './OSCReceiver';
 
 
 
@@ -37,7 +37,7 @@ loader.load(
   (progress) => console.log('Loading model...', 100.0 * (progress.loaded / progress.total), '%'),
   (error) => console.error(error),
 );
-listen('OscPacket', (e: Event) => {
+listen<Message>('OscPacket', (e) => {
   setPositionFromBonePosition(e.payload.bone, vrm);
 });
 
