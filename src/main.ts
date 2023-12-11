@@ -1,22 +1,52 @@
-import { invoke } from "@tauri-apps/api/tauri";
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons';
+import { VRMLoaderPlugin } from '@pixiv/three-vrm';
 
-let greetInputEl: HTMLInputElement | null;
-let greetMsgEl: HTMLElement | null;
+const scene = new THREE.Scene();
 
-async function greet() {
-  if (greetMsgEl && greetInputEl) {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    greetMsgEl.textContent = await invoke("greet", {
-      name: greetInputEl.value,
-    });
-  }
-}
+// カメラの準備
+const camera = new THREE.PerspectiveCamera(45, 960 / 540, 0.1, 1000)
+camera.position.set(0, 0.5, -2.0)
+camera.rotation.set(0, Math.PI, 0)
+const renderer = new THREE.WebGLRenderer()
+renderer.setSize(960, 540)
+document.body.appendChild(renderer.domElement)
+const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1.5)
+directionalLight.position.set(1, 1, 1)
+scene.add(directionalLight)
 
-window.addEventListener("DOMContentLoaded", () => {
-  greetInputEl = document.querySelector("#greet-input");
-  greetMsgEl = document.querySelector("#greet-msg");
-  document.querySelector("#greet-form")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    greet();
-  });
+
+const loader = new GLTFLoader();
+// Install GLTFLoader plugin
+loader.register((parser) => {
+  return new VRMLoaderPlugin(parser);
 });
+
+loader.load(
+  // URL of the VRM you want to load
+  '/src/assets/sample.vrm',
+
+  // called when the resource is loaded
+  (gltf) => {
+    // retrieve a VRM instance from gltf
+    const vrm = gltf.userData.vrm;
+
+    // add the loaded vrm to the scene
+    scene.add(vrm.scene);
+
+    // deal with vrm features
+    console.log(vrm);
+  },
+
+  // called while loading is progressing
+  (progress) => console.log('Loading model...', 100.0 * (progress.loaded / progress.total), '%'),
+
+  // called when loading has errors
+  (error) => console.error(error),
+);
+// アニメーションループの開始
+function tick() {
+  requestAnimationFrame(tick)
+  renderer.render(scene, camera)
+}
+tick()
